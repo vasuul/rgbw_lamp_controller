@@ -1,2 +1,2 @@
-# rgbw_lamp_controller
+# RGBW Lamp Controller
 Controller program for RGBW lamp
