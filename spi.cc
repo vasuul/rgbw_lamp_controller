@@ -75,9 +75,21 @@ void RGBW_SPIEncoder::SendMessage(uint8_t spi_buf[8]) {
 #endif
 }
 
-void RGBW_SPIEncoder::SetColors(uint8_t active,
-                                uint8_t r, uint8_t g, uint8_t b, uint8_t w) {
-  uint8_t spi_msg[8] = { LEDS_CMD, active, r, g, b, w, 0, 0 };
+void RGBW_SPIEncoder::SetColors(const ColorStatus &status) {
+  uint8_t active = 4;
+  switch(status.active) {
+  case ActiveColor::R: active = 0; break; 
+  case ActiveColor::G: active = 1; break;
+  case ActiveColor::B: active = 2; break;
+  case ActiveColor::W: active = 3; break;
+  default: active = 4; break;    
+  }
+  uint8_t spi_msg[8] = { LEDS_CMD, active,
+                         status.color.r,
+                         status.color.g,
+                         status.color.b,
+                         status.color.w,
+                         0, 0 };
   SendMessage(spi_msg);
 }
 

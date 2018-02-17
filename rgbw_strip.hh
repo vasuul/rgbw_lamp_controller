@@ -6,12 +6,14 @@
 
 #include "controller.hh"
 
-template <int _R=108, int _C=8>
 class RGBWStrip {
 public:
   RGBWStrip() {}
   ~RGBWStrip() {}
 
+  static const int _R = 108;
+  static const int _C =   8;
+  
   int Rows() { return _R; }
   int R() { return _R; }
   int Columns () { return _C; }
