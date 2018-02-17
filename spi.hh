@@ -13,7 +13,7 @@ struct RGBWEncoder {
 
 class RGBW_SPIEncoder {
 public:
-  RGBW_SPIEncoder(std::string path = "/dev/spidev0.0", int speed = 6*1000);
+  RGBW_SPIEncoder(const std::string &path = "/dev/spidev0.0", int speed = 5*1000);
   ~RGBW_SPIEncoder();
 
   int Speed() const { return _speed; }

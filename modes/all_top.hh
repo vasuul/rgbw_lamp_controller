@@ -37,12 +37,13 @@ public:
         color = RGBW(0, 0, 0x80, 0);
       }
 
-      for(int r = 0; r < strip.R(); r++) {
-        for(int c = 0; c < strip.C(); c++) {
-          if(r > height) strip(r, c) = color;
-          else           strip(r, c) = whiteColor;
+      for(int c = 0; c < strip.C(); c++) {
+        for(int r = 0; r < strip.R(); r++) {
+          if(r < height) strip(c, r) = color;
+          else           strip(c, r) = whiteColor;
         }
       }
+      changed = false;
       return true;
     } else return false;
   }

@@ -3,6 +3,8 @@
 
 #include "../mode.hh"
 
+#include <iostream>
+
 class AllOnMode : public Mode {
 public:
   AllOnMode() { color = RGBW(0, 0, 0, 0x80); }
@@ -23,12 +25,12 @@ public:
   
   virtual bool Render(RGBWStrip &strip, float msDelta, bool wakeup) {
     if(changed || wakeup) {
-      RGBW color;
-      for(int r = 0; r < strip.R(); r++) {
-        for(int c = 0; c < strip.C(); c++) {
-          strip(r, c) = color;
+      for(int c = 0; c < strip.C(); c++) {
+        for(int r = 0; r < strip.R(); r++) {
+          strip(c, r) = color;
         }
       }
+      changed = false;
       return true;
     } else return false;
   }

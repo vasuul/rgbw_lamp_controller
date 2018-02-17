@@ -11,7 +11,7 @@ public:
   RGBWStrip() {}
   ~RGBWStrip() {}
 
-  static const int _R = 108;
+  static const int _R = 106;
   static const int _C =   8;
   
   int Rows() { return _R; }

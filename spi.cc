@@ -22,10 +22,10 @@
 #define B_NDX      6
 #define W_NDX      7
 
-RGBW_SPIEncoder::RGBW_SPIEncoder(std::string path, int speed) {
+RGBW_SPIEncoder::RGBW_SPIEncoder(const std::string &path, int speed) {
 #ifdef __linux__
   spi_dev = open(path.c_str(), O_RDWR);
-  int mode, bits, speed;
+  int mode, bits;
   if(spi_dev < 0) {
     return;
   }
@@ -66,10 +66,10 @@ RGBW_SPIEncoder::~RGBW_SPIEncoder() {
 void RGBW_SPIEncoder::SendMessage(uint8_t spi_buf[8]) {
 #ifdef __linux__
   struct spi_ioc_transfer msg[1] = {0};
-  msg[0].tx_buf = spi_buf;
-  msg[0].rx_buf = spi_buf;
+  msg[0].tx_buf = (uint64_t)spi_buf;
+  msg[0].rx_buf = (uint64_t)spi_buf;
   msg[0].len = 8;
-  ioctl(spi_fd, SPI_IOC_MESSAGE(1), msg);
+  ioctl(spi_dev, SPI_IOC_MESSAGE(1), msg);
 #else
   // Do something here based on the command type
 #endif
@@ -104,7 +104,9 @@ RGBWEncoder RGBW_SPIEncoder::GetStatus() {
   SendMessage(spi_msg);
   if(spi_msg[BTN_NDX] == 255) {
     ret.button_held = true;
+    ret.button_pressed = 0;
   } else {
+    ret.button_held = false;
     ret.button_pressed = spi_msg[BTN_NDX];
   }
   switch(spi_msg[ACTIVE_NDX]) {
