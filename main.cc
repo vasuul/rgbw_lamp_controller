@@ -51,6 +51,7 @@ struct ModeInfo {
 };
 
 int main(int argc, char **argv) {
+  
   bool done = false;
   std::vector<ModeInfo> lightModes;
   lightModes.push_back(ModeInfo(new AllOnMode()));
@@ -60,17 +61,21 @@ int main(int argc, char **argv) {
   // Create our strip and default all the LEDs to 0
   RGBWStrip strip;
 
+  while(kernel_strip_fd < 0) {
+    // Open the interface to the RGBW strip
+    kernel_strip_fd = open("/dev/rgbws", O_RDWR);
+    sleep(3);
+  }
+
   // Create our interface to the encoder and front panel button
   RGBW_SPIEncoder enc;
   enc.SetColors(lightModes[activeMode].color);
-
-  // Open the interface to the RGBW strip
-  kernel_strip_fd = open("/dev/rgbws", O_RDWR);
 
   // Need to set our initial time
   auto start = system_clock::now();
   bool wakeup = true; // True if we are activating a mode for the first time
   while(!done) {
+
     // Get the time now and calculate the delta
     auto now = system_clock::now();
     float ms = duration<float, std::milli>(now - start).count();

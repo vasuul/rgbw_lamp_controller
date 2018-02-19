@@ -1,0 +1,12 @@
+[Unit]
+Description=Load lamp module
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/insmod /lib/modules/rgbw_strip.ko
+RemainAfterExit=true
+ExecStop=/sbin/rmmod rgbw_strip
+
+[Install]
+WantedBy=multi-user.target
+Alias=lamp-module.service
