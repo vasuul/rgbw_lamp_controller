@@ -75,6 +75,7 @@ public:
     int minute = now_tm->tm_min;
 
     float dur_3 = alarmDuration / 3.0;
+    float dur_2 = alarmDuration / 2.0;
     
     if(!alarming) {
       if(hour == alarmHour && minute == alarmMinute) {
@@ -94,38 +95,30 @@ public:
         RGBW color(0, 0, 0, 0);
         {
           // RED
-          //  Gradually light them up over the course of Duration/3 minutes (600 seconds)
-          //   Go from 0 to 255 in .8 * duration/3
-          //   Go from 255 to 0 in .2 * duration/3
+          //  Gradually light them up over the course of Duration/2 minutes
+          //   Go from 0 to 255 in .7 * duration/3
+          //   Go from 255 to 0 in .3 * duration/3
           float startAt = r * (dur_3 / strip.R());
           float level = 0.0;
-	  float dur_3_8 = .8 * dur_3;
-	  float dur_3_2 = .2 * dur_3;
-          if(seconds > startAt && seconds < (startAt + dur_3_8)) {
+	  float rise = .7 * dur_2;
+	  float fall = .3 * dur_2;
+          if(seconds > startAt && seconds < (startAt + rise)) {
             // Rising
-            level = (seconds - startAt) / dur_3_8;
+            level = (seconds - startAt) / rise;
 	    color.r = cor(level);
-          } else if(seconds >= (startAt + dur_3_8) && seconds < startAt + dur_3) {
+          } else if(seconds >= (startAt + rise) && seconds < startAt + dur_2) {
             // Falling
-            level = (dur_3_2 - (seconds - (startAt + dur_3_8))) / dur_3_2; 
+            level = (fall - (seconds - (startAt + rise))) / fall; 
 	    color.r = cor(level);
           } else {
 	    color.r = 0;
           }
         }
-        
-        // GREEN
-        // Ignore for now
-        
-        // BLUE
-        // After 20 minutes light up 10 per minute
-        
+                
         {
           // WHITE
           //  Gradually light them up over the course of 2*(Duration/3) seconds
           //   Wait Duration/3 seconds first
-          //   So start a new ring every 1200 / R() / seconds
-          //   Go from 0 to 255 in 20 minutes (1200 seconds)
 	  float dur_3_2 = dur_3 * 2;
           float startAt = r * (dur_3_2 / strip.R()) + dur_3;
           float level = 0.0;
@@ -133,7 +126,7 @@ public:
             // Rising
             level = (seconds - startAt) / dur_3_2;
 	    color.w = cor(level);
-          } else if(seconds < startAt) {
+          } else if(seconds <= startAt) {
 	    color.w = 0x0;
 	  } else {
 	    color.w = 0xFF;
@@ -171,7 +164,7 @@ protected:
     return val;
   }
 
-  const int alarmDuration = (60 * 30); // In seconds
+  const int alarmDuration = (60 * 40); // In seconds
 
   const unsigned char gamma8[256] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
