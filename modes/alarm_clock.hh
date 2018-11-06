@@ -4,14 +4,16 @@
 #include "../mode.hh"
 #include <ctime>
 
+#include <iostream>
+
 class AlarmClockMode : public Mode {
 
 public:
   AlarmClockMode() {
     wakingUp= false;
     alarming = false;
-    alarmHour = 20;
-    alarmMinute = 30;
+    alarmHour = 21;
+    alarmMinute = 36;
   }
   
   virtual ~AlarmClockMode() {}
@@ -71,6 +73,8 @@ public:
     std::tm* now_tm = std::localtime(&now);
     int hour = now_tm->tm_hour;
     int minute = now_tm->tm_min;
+
+    float dur_3 = alarmDuration / 3.0;
     
     if(!alarming) {
       if(hour == alarmHour && minute == alarmMinute) {
@@ -90,23 +94,24 @@ public:
         RGBW color(0, 0, 0, 0);
         {
           // RED
-          //  Gradually light them up over the course of 10 minutes (600 seconds)
-          //   So start a new ring every 600 / R() / seconds
-          //   Go from 0 to 255 in 8 minutes (480 seconds)
-          //   Go from 255 to 0 in 120 seconds
-          float startAt = r * (600.0 / strip.R());
+          //  Gradually light them up over the course of Duration/3 minutes (600 seconds)
+          //   Go from 0 to 255 in .8 * duration/3
+          //   Go from 255 to 0 in .2 * duration/3
+          float startAt = r * (dur_3 / strip.R());
           float level = 0.0;
-          if(seconds > startAt && seconds < (startAt + 480)) {
+	  float dur_3_8 = .8 * dur_3;
+	  float dur_3_2 = .2 * dur_3;
+          if(seconds > startAt && seconds < (startAt + dur_3_8)) {
             // Rising
-            level = (seconds - startAt) / 480.0;
-          } else if(seconds >= (startAt + 480) && seconds < startAt + 600) {
+            level = (seconds - startAt) / dur_3_8;
+	    color.r = cor(level);
+          } else if(seconds >= (startAt + dur_3_8) && seconds < startAt + dur_3) {
             // Falling
-            level = (120 - (seconds - (startAt + 480.0))) / 120.0; 
+            level = (dur_3_2 - (seconds - (startAt + dur_3_8))) / dur_3_2; 
+	    color.r = cor(level);
           } else {
-            // Off
-            level = 0.0;
+	    color.r = 0;
           }
-          color.r = cor(level);
         }
         
         // GREEN
@@ -117,27 +122,28 @@ public:
         
         {
           // WHITE
-          //  Gradually light them up over the course of 20 minutes (1200 seconds)
-          //   Wait 10 minutes first
+          //  Gradually light them up over the course of 2*(Duration/3) seconds
+          //   Wait Duration/3 seconds first
           //   So start a new ring every 1200 / R() / seconds
           //   Go from 0 to 255 in 20 minutes (1200 seconds)
-          float startAt = r * (1200.0 / strip.R()) + 600;
+	  float dur_3_2 = dur_3 * 2;
+          float startAt = r * (dur_3_2 / strip.R()) + dur_3;
           float level = 0.0;
-          if(seconds > startAt && seconds < (startAt + 1200)) {
+          if(seconds > startAt && seconds < (startAt + dur_3_2)) {
             // Rising
-            level = (seconds - startAt) / 1200.0;
-          } else {
-            // Off
-            level = 0.0;
+            level = (seconds - startAt) / dur_3_2;
+	    color.w = cor(level);
+          } else if(seconds < startAt) {
+	    color.w = 0x0;
+	  } else {
+	    color.w = 0xFF;
           }
-          color.w = cor(level);
         }
         for(int c = 0; c < strip.C(); c++) {
           strip(c, r) = color;
         }
       }
 
-      
     }
     
     return false;
@@ -160,8 +166,12 @@ protected:
     if(a > 1.0) a = 1.0;
     if(a < 0.0) a = 0.0;
 
-    return gamma8[(int)a * 255];
+    unsigned char val = gamma8[(int)(a * 255)];
+    if(val == 0) val = 1;
+    return val;
   }
+
+  const int alarmDuration = (60 * 30); // In seconds
 
   const unsigned char gamma8[256] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

@@ -1,9 +1,9 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 
 #ifdef __linux__
-  #include <unistd.h>
   #include <sys/ioctl.h>
   #include <sys/types.h>
   #include <sys/stat.h>
@@ -57,11 +57,12 @@ int main(int argc, char **argv) {
   lightModes.push_back(ModeInfo(new AllOnMode()));
   lightModes.push_back(ModeInfo(new AllOnTopMode()));
   lightModes.push_back(ModeInfo(new AlarmClockMode()));
-  uint activeMode = 0;
+  uint activeMode = 2;
   
   // Create our strip and default all the LEDs to 0
   RGBWStrip strip;
 
+#ifdef __linux__
   while(kernel_strip_fd < 0) {
     // Open the interface to the RGBW strip
     kernel_strip_fd = open("/dev/rgbws", O_RDWR);
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
       cout << "kernel_strip_fd is " << kernel_strip_fd << endl;
     }
   }
+#endif
 
   // Create our interface to the encoder and front panel button
   RGBW_SPIEncoder enc;
@@ -127,5 +129,7 @@ int main(int argc, char **argv) {
         wakeup = true;
       }
     }
-  }
+
+    usleep(16666); // Limit to ~60Hz
+  } // end while
 }
