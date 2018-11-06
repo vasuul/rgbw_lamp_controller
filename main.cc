@@ -1,5 +1,3 @@
-//#define DEBUG 1
-
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -21,6 +19,7 @@
 
 #include "modes/all_on.hh"
 #include "modes/all_top.hh"
+#include "modes/alarm_clock.hh"
 
 using namespace std;
 using namespace std::chrono;
@@ -53,9 +52,11 @@ struct ModeInfo {
 int main(int argc, char **argv) {
   
   bool done = false;
+  bool debug = false;
   std::vector<ModeInfo> lightModes;
   lightModes.push_back(ModeInfo(new AllOnMode()));
   lightModes.push_back(ModeInfo(new AllOnTopMode()));
+  lightModes.push_back(ModeInfo(new AlarmClockMode()));
   uint activeMode = 0;
   
   // Create our strip and default all the LEDs to 0
@@ -65,6 +66,10 @@ int main(int argc, char **argv) {
     // Open the interface to the RGBW strip
     kernel_strip_fd = open("/dev/rgbws", O_RDWR);
     sleep(3);
+
+    if(debug) {
+      cout << "kernel_strip_fd is " << kernel_strip_fd << endl;
+    }
   }
 
   // Create our interface to the encoder and front panel button
@@ -84,29 +89,33 @@ int main(int argc, char **argv) {
       wakeup = false;
       start = system_clock::now();
       if(send) {
-        #if DEBUG
-        cout << "Sending to strip" << endl;
-        #endif
+        if(debug) {
+          cout << "Sending to strip" << endl;
+        }
         send_buffer(strip);
       }
     }
 
     // Then check out input from the PIC
     RGBWEncoder vals = enc.GetStatus();
-    #if DEBUG
-    cout << "Status: " << (int)vals.activeColor.active << ":" << (int)vals.button_pressed << ":" << (int)vals.button_held << endl;
-    #endif
+    if(debug) {
+      cout << "Status: " << (int)vals.activeColor.active << ":" <<
+        (int)vals.button_pressed << ":" <<
+        (int)vals.button_held << endl;
+    }
+    
     // Save the current values first
     if(activeMode < lightModes.size()) {
       if(lightModes[activeMode].color != vals.activeColor) {
-        #if DEBUG
+        if(debug) {
         cout << "Color changed" << endl;
         cout << vals.activeColor.color << endl;
-        #endif
+      }
         lightModes[activeMode].color = vals.activeColor;
         lightModes[activeMode].mode->Update(vals.activeColor);
       }
     }
+    
     if(vals.button_held) {
       // Turn off here?
     } else if(vals.button_pressed > 0) {
@@ -118,10 +127,5 @@ int main(int argc, char **argv) {
         wakeup = true;
       }
     }
-
-    #if DEBUG
-    cout << "Sleeping" << endl;
-    sleep(5);
-    #endif
   }
 }
