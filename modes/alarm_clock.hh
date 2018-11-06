@@ -12,8 +12,8 @@ public:
   AlarmClockMode() {
     wakingUp= false;
     alarming = false;
-    alarmHour = 21;
-    alarmMinute = 36;
+    alarmHour = 22;
+    alarmMinute = 02;
   }
   
   virtual ~AlarmClockMode() {}
@@ -36,9 +36,9 @@ public:
     if(wakingUp) {
       // spend 10ms in each row
       wakingCount += msDelta;
-      if(wakingCount > 10) {
+      if(wakingCount > 5) {
         wakingLevel++;
-        wakingCount -= 10;
+        wakingCount -= 5;
       }
 
       if(wakingLevel >= R2) {
@@ -143,7 +143,7 @@ public:
           strip(c, r) = color;
         }
       }
-
+      return true;
     }
     
     return false;
