@@ -11,6 +11,9 @@ struct RGBW {
     if(r == o.r && g == o.g && b == o.b && w == o.w) return true;
     else return false;
   }
+  bool operator!=(const RGBW &o) const {
+    return !(*this == o);
+  }
   friend std::ostream& operator<<(std::ostream &o, const RGBW &c) {
     o << "(" << (int)c.r << ":" <<
       (int)c.g << ":" <<

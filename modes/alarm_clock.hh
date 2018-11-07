@@ -12,8 +12,8 @@ public:
   AlarmClockMode() {
     wakingUp= false;
     alarming = false;
-    alarmHour = 22;
-    alarmMinute = 02;
+    alarmHour = 6;
+    alarmMinute = 0;
   }
   
   virtual ~AlarmClockMode() {}
@@ -86,19 +86,18 @@ public:
       //  alarm
       // TODO: This isn't going to work if the alarm crosses a day
 
-      int dmin = (minute < alarmMinute) ?
-        (minute + 60) - alarmMinute :
-        minute - alarmMinute;
+      int dmin = (minute - alarmMinute) + 60*(hour - alarmHour);
       int seconds = now_tm->tm_sec + 60*dmin;
 
+      bool changed = false;
       for(int r = 0; r < strip.R(); r++) {
         RGBW color(0, 0, 0, 0);
         {
           // RED
           //  Gradually light them up over the course of Duration/2 minutes
-          //   Go from 0 to 255 in .7 * duration/3
-          //   Go from 255 to 0 in .3 * duration/3
-          float startAt = r * (dur_3 / strip.R());
+          //   Go from 0 to 255 in .7 * duration/2
+          //   Go from 255 to 0 in .3 * duration/2
+          float startAt = r * (dur_2 / strip.R());
           float level = 0.0;
 	  float rise = .7 * dur_2;
 	  float fall = .3 * dur_2;
@@ -120,7 +119,7 @@ public:
           //  Gradually light them up over the course of 2*(Duration/3) seconds
           //   Wait Duration/3 seconds first
 	  float dur_3_2 = dur_3 * 2;
-          float startAt = r * (dur_3_2 / strip.R()) + dur_3;
+          float startAt = r * (dur_3 / strip.R()) + dur_3;
           float level = 0.0;
           if(seconds > startAt && seconds < (startAt + dur_3_2)) {
             // Rising
@@ -133,10 +132,13 @@ public:
           }
         }
         for(int c = 0; c < strip.C(); c++) {
-          strip(c, r) = color;
+          if(strip(c, strip.R() - r - 1) != color) {            
+            strip(c, strip.R() - r - 1) = color;
+            changed = true;
+          }
         }
       }
-      return true;
+      return changed;
     }
     
     return false;
