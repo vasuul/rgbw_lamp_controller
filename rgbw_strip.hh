@@ -3,6 +3,7 @@
 
 #include <stdexcept> // std::out_of_range
 #include <sstream> // stringstream
+#include <cstring>
 
 #include "controller.hh"
 
@@ -48,6 +49,10 @@ public:
 
   RGBW* GetLEDs() {
     return strip;
+  }
+
+  void Clear() {
+    memset(strip, 0, sizeof(RGBW) * _R * _C);
   }
   
 protected:

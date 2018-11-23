@@ -12,6 +12,7 @@ public:
   AlarmClockMode() {
     wakingUp= false;
     alarming = false;
+    cleared = false;
     alarmHour = 6;
     alarmMinute = 0;
   }
@@ -34,11 +35,11 @@ public:
     float R2 = strip.R() * 2.0;
     
     if(wakingUp) {
-      // spend 10ms in each row
+      // spend 2ms in each row
       wakingCount += msDelta;
-      if(wakingCount > 5) {
+      if(wakingCount > 1) {
         wakingLevel++;
-        wakingCount -= 5;
+        wakingCount -= 1;
       }
 
       if(wakingLevel >= R2) {
@@ -56,10 +57,28 @@ public:
       RGBW colorBlack = RGBW(0, 0, 0, 0);
       
       for(int r = 0; r < strip.R(); r++) {
-        for(int c = 0; c < strip.C(); c++) {
-          if((r == wakingLevel || r == (R2 - wakingLevel)) && wakingUp) {
-            strip(c, r) = color;
-          } else {
+        for(int c = 0; c < strip.C(); c++) {          
+          if((r == wakingLevel) && wakingUp) {
+            strip(c, r) = corColor(color, 1.0);
+          } else if((r == wakingLevel-1 || r == wakingLevel+1) && wakingUp) {
+            strip(c, r) = corColor(color, .75);
+          } else if((r == wakingLevel-2 || r == wakingLevel+2) && wakingUp) {
+            strip(c, r) = corColor(color, .5);
+          } else if((r == wakingLevel-3 || r == wakingLevel+3) && wakingUp) {
+            strip(c, r) = corColor(color, .25);
+          }
+
+          else if(r == (R2 - wakingLevel) && wakingUp) {
+            strip(c, r) = corColor(color, 1.0);
+          } else if((r == R2 - wakingLevel + 1 || r == R2 - wakingLevel - 1) && wakingUp) {
+            strip(c, r) = corColor(color, .75);
+          } else if((r == R2 - wakingLevel + 2 || r == R2 - wakingLevel - 2) && wakingUp) {
+            strip(c, r) = corColor(color, .5);
+          } else if((r == R2 - wakingLevel + 3 || r == R2 - wakingLevel - 3) && wakingUp) {
+            strip(c, r) = corColor(color, .25);
+          } 
+
+          else if(c >= 0 && c < strip.C() && r >= 0 && r < strip.R()) {
             strip(c, r) = colorBlack;
           }
         }
@@ -80,6 +99,9 @@ public:
     if(!alarming) {
       if(hour == alarmHour && minute == alarmMinute) {
         alarming = true;
+        cleared = false;
+      } else if(!cleared) {
+        // Make sure all the LEDs are off
       }
     } else {
       // Now we just have to generate a patten to send based on the time since the
@@ -131,6 +153,7 @@ public:
 	    color.w = 0xFF;
           }
         }
+        
         for(int c = 0; c < strip.C(); c++) {
           if(strip(c, strip.R() - r - 1) != color) {            
             strip(c, strip.R() - r - 1) = color;
@@ -149,7 +172,7 @@ public:
   }
 
 protected:
-  bool wakingUp, alarming;
+  bool wakingUp, alarming, cleared;
 
   int alarmHour;
   int alarmMinute;
@@ -157,13 +180,22 @@ protected:
   int wakingLevel;
   float wakingCount;
 
-  unsigned char cor(float a) {
+  unsigned char cor(float a) const {
     if(a > 1.0) a = 1.0;
     if(a < 0.0) a = 0.0;
 
     unsigned char val = gamma8[(int)(a * 255)];
     if(val == 0) val = 1;
     return val;
+  }
+
+  RGBW corColor(const RGBW &c, float a) const {
+    if(a < 0) a = 0;
+    if(a > 1.0) a = 1.0;
+    
+    return RGBW(gamma8[(int)(a * c.r)], gamma8[(int)(a * c.g)],
+                gamma8[(int)(a * c.b)], gamma8[(int)(a * c.w)]
+      );
   }
 
   const int alarmDuration = (60 * 40); // In seconds
